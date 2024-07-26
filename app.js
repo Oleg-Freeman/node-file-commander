@@ -12,7 +12,7 @@ const fs = require('fs/promises');
     const position = 0; // always read from the first character
 
     const content = await commandFileHandler.read(buff, offset, length, position);
-    console.log(content);
+    console.log(buff.toString('utf-8'));
   })
 
   const watcher = await fs.watch(commandFilePath);
