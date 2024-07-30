@@ -14,13 +14,30 @@ const fs = require('fs/promises');
     }
   };
   const deleteFile = async (path) => {
-    console.log(`Deleting file at ${path}`);
+    try {
+      await fs.unlink(path);
+      console.log(`Deleted file at ${path}`);
+    } catch (error) {
+      console.log(`File does not exist at ${path}`);
+    }
   };
   const renameFile = async (oldPath, newPath) => {
-    console.log(`Renaming file at ${oldPath} to ${newPath}`)
+    try {
+      await fs.rename(oldPath, newPath);
+      console.log(`Renamed ${oldPath} to ${newPath}`)
+    } catch (error) {
+      console.log(`File does not exist at ${oldPath}`)
+    }
   };
   const addToFile = async (path, data) => {
-    console.log(`Adding to file at ${path}: ${data}`);
+    try {
+      const existingFileHandler = await fs.open(path, 'a');
+      await existingFileHandler.appendFile(data);
+      await existingFileHandler.close();
+      console.log(`Added to ${path} content: ${data}`);
+    } catch (error) {
+        console.log(`File does not exist at ${path}`);
+    }
   };
 
   const commands = {
@@ -30,7 +47,16 @@ const fs = require('fs/promises');
     ADD_TO_FILE: 'add to file',
   };
   const commandFilePath = './command.txt';
-  const commandFileHandler = await fs.open(commandFilePath, 'w+');
+  let commandFileHandler;
+
+  try {
+    commandFileHandler = await fs.open(commandFilePath, 'r');
+  } catch (error) {
+    await fs.writeFile(commandFilePath, '');
+    console.log('Command file created');
+
+    commandFileHandler = await fs.open(commandFilePath, 'r');
+  }
 
   commandFileHandler.on('change', async () => {
     const size = (await commandFileHandler.stat()).size;
